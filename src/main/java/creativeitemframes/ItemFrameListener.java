@@ -2,8 +2,10 @@ package creativeitemframes;
 
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -23,29 +25,37 @@ public class ItemFrameListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageByEntityEvent event) {
-        if (event.getDamager() instanceof Player && event.getEntity() instanceof ItemFrame) {
-            onItemFrameDamageByPlayer((ItemFrame) event.getEntity(), (Player) event.getDamager());
+        Entity source = damageSource(event);
+        if (event.getEntity() instanceof ItemFrame && source instanceof Player) {
+            onItemFrameDamageByPlayer((ItemFrame) event.getEntity(), (Player) source);
         }
+    }
+
+    private Entity damageSource(EntityDamageByEntityEvent event) {
+        Entity source = event.getDamager();
+        if (source instanceof Projectile) {
+            Projectile projectile = (Projectile) source;
+            if (projectile.getShooter() instanceof Entity) {
+                source = (Entity) projectile.getShooter();
+
+            }
+        }
+        return source;
     }
 
     private void onItemFrameDamageByPlayer(ItemFrame itemFrame, Player player) {
         if (player.getGameMode() == GameMode.CREATIVE && itemFrame.getItem().getAmount() > 0) {
-            plugin.getLogger().info(String.format("" +
-                            "Player %s " +
-                            "destroyed item %s " +
-                            "in item frame at %s " +
-                            "while in creative. Putting item in their inventory",
-                    player.getName(),
-                    itemFrame.getItem(),
-                    itemFrame.getLocation()));
-            itemFrame.getWorld().dropItem(
-                    new Location(
-                            itemFrame.getLocation().getWorld(),
-                            itemFrame.getLocation().getBlockX() + 0.5d,
-                            itemFrame.getLocation().getBlockY() + 0.5d,
-                            itemFrame.getLocation().getBlockZ() + 0.5d
-                    ),
-                    itemFrame.getItem());
+            player.sendMessage("" +
+                    "You damaged an item frame whilst in creative mode. " +
+                    "This normally would delete the item. " +
+                    "Dropping item instead.");
+            Location dropLocation = new Location(
+                    itemFrame.getLocation().getWorld(),
+                    itemFrame.getLocation().getBlockX() + 0.5d,
+                    itemFrame.getLocation().getBlockY() + 0.5d,
+                    itemFrame.getLocation().getBlockZ() + 0.5d
+            );
+            itemFrame.getWorld().dropItem(dropLocation, itemFrame.getItem());
         }
     }
 
