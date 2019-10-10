@@ -1,5 +1,5 @@
 name: creative-itemframes
-version: 1.0
+version: ${project.version}
 api-version: 1.14
 main: creativeitemframes.CreativeItemFrames
 author: DrHenchman
