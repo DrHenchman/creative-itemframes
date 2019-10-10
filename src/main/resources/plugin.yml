@@ -1,0 +1,5 @@
+name: creative-itemframes
+version: 1.0
+api-version: 1.14
+main: creativeitemframes.CreativeItemFrames
+author: DrHenchman
